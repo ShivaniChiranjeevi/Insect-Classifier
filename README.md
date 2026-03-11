@@ -37,3 +37,13 @@ image=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
 result=evaluate.evaluate(model,image)
 print(result)          
 ```
+
+## License
+
+The model weights are released under the  
+Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
+
+This allows researchers to use, modify, and redistribute the model for
+non-commercial purposes with proper attribution.
+
+Full license text: https://creativecommons.org/licenses/by-nc/4.0/
