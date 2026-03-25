@@ -10,9 +10,9 @@ pip install pandas numpy opencv-python
 
 Model weights are available on [Zenodo](https://zenodo.org/records/14538000).
 
-Download the full repository (which should contain):
+
 ```
-your_classifier_dir/
+./
 ├── model_github.pth   ← model weights
 ├── classes.txt        ← one scientific name per line (index = logit index)
 └── classes.csv        ← metadata: Scientific Name, Common Name, Order, Family, Role in Ecosystem
