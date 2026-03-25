@@ -13,7 +13,7 @@ Model weights are available on [Zenodo](https://zenodo.org/records/14538000).
 
 ```
 ./
-├── model_github.pth   ← model weights
+├── model.pth   ← model weights
 ├── classes.txt        ← one scientific name per line (index = logit index)
 └── classes.csv        ← metadata: Scientific Name, Common Name, Order, Family, Role in Ecosystem
 ```
