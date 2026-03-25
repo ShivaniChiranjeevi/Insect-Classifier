@@ -34,7 +34,7 @@ PATH_TO_IMAGE      = '/path/to/your_image.jpg'
 
 # ── 1. Load model ──────────────────────────────────────────────────────────
 weights = torch.load(
-    PATH_TO_CLASSIFIER + '/model_github.pth',
+    PATH_TO_CLASSIFIER + '/model.pth',
     map_location=torch.device('cpu'),
     weights_only=False
 )['model']                          # <-- note the ['model'] key
