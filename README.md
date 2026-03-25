@@ -1,49 +1,104 @@
 # Insect-Classifier
-Packages and versions requirements:  Python 3.8 (minimum),  torch and torchvision can be downloaded at https://pytorch.org/get-started/previous-versions/
 
+**Requirements:** Python ≥ 3.8  
+Install PyTorch + torchvision from https://pytorch.org/get-started/previous-versions/
 
-This tutorial guides you on how to load the pretrained insect classifier weights and use it for evaluation. The weights for the classifier are available [here](https://zenodo.org/records/14538000?token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6ImRmYTc1MDk0LTJlNzYtNDlkYy1iNDZhLWI0NmU4Mzc3OWVhZiIsImRhdGEiOnt9LCJyYW5kb20iOiI2OGQxMDU4OWU2NDgxMjhiNGUxMTFhMDU4YTdiZTBkNiJ9.E3b6rnplZkUWSjta0whBI3_r8y1jixMa5JatyAcAPfJPX-NXaaqV-7ckeEQfOpDFvkQ7XoDHIyWvCUVkED-rng). Download the repository and navigate into its directory.
-## Loading libraries
+Additional dependencies:
+```
+pip install pandas numpy opencv-python
+```
 
-```{r test-python, engine='python'}
+Model weights are available on [Zenodo](https://zenodo.org/records/14538000).
+
+Download the full repository (which should contain):
+```
+your_classifier_dir/
+├── model_github.pth   ← model weights
+├── classes.txt        ← one scientific name per line (index = logit index)
+└── classes.csv        ← metadata: Scientific Name, Common Name, Order, Family, Role in Ecosystem
+```
+
+---
+
+## Quick-start example
+
+```python
 import torch
 import torchvision
-import evaluate
 import cv2
-```
+import pandas as pd
+from evaluate import evaluate   # evaluate.py from this repo
 
-## Creating the classifier model
+PATH_TO_CLASSIFIER = '/path/to/your_classifier_dir'
+PATH_TO_IMAGE      = '/path/to/your_image.jpg'
 
-```{r test-python, engine='python'}
-model=torchvision.models.regnet_y_32gf()
-```
+# ── 1. Load model ──────────────────────────────────────────────────────────
+weights = torch.load(
+    PATH_TO_CLASSIFIER + '/model_github.pth',
+    map_location=torch.device('cpu'),
+    weights_only=False
+)['model']                          # <-- note the ['model'] key
 
-## Loading weights of the model
-
-```{r test-python, engine='python'}
-weights=torch.load(PATH_TO_PTH_FILE+'/model.pth',map_location=torch.device('cpu'))
-model.fc=torch.nn.Linear(3712,2526)
-model.load_state_dict(weights,strict=True)
-torch.backends.cudnn.benchmark = False
+model = torchvision.models.regnet_y_32gf()
+model.fc = torch.nn.Linear(3712, 2526)
+model.load_state_dict(weights, strict=True)
+torch.backends.cudnn.benchmark    = False
 torch.backends.cudnn.deterministic = True
 model.eval()
+
+# ── 2. Load metadata ───────────────────────────────────────────────────────
+cmnDf          = pd.read_csv(PATH_TO_CLASSIFIER + '/classes.csv')
+class_txt_path = PATH_TO_CLASSIFIER + '/classes.txt'
+# classes.csv must have columns:
+#   'Scientific Name', 'Common Name', 'Order', 'Family', 'Role in Ecosystem'
+# classes.txt must have one scientific name per line whose line index matches
+#   the corresponding model output logit index.
+
+# ── 3. Load & preprocess image ─────────────────────────────────────────────
+image = cv2.imread(PATH_TO_IMAGE)
+image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+# ── 4. Run inference ───────────────────────────────────────────────────────
+sci, cmn, order, family, role, confirmed, other = evaluate(
+    model, image, cmnDf, class_txt_path
+)
+
+print("Scientific Name:", sci)
+print("Common Name:    ", cmn)
+print("Order:          ", order)
+print("Family:         ", family)
+print("Role:           ", role)
+print("Confirmed:      ", confirmed)
+print("Other plausible:", other)
 ```
 
-## Function to load the image and predict Insect class
-
-```{r test-python, engine='python'}
-image=cv2.imread(PATH_TO_IMAGE)
-image=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-result=evaluate.evaluate(model,image)
-print(result)          
+### Example output
 ```
+Scientific Name:  Oxythyrea funesta
+Common Name:      white spotted rose beetle
+Order:            Coleoptera
+Family:           Scarabaeidae
+Role:             Pest
+Confirmed:        True
+Other plausible:  {}
+```
+
+---
+
+## What changed vs. the old evaluate.py
+
+| Issue | Old code | Fixed code |
+|---|---|---|
+| Class index source | `df['genus'] + ' ' + df['species']` from CSV | `classes.txt` (one name per line) — **critical** |
+| OOD detection | Softmax threshold ≥ 0.97 | Energy-based threshold (energy < 11.49) |
+| Weight loading | `torch.load(...)` directly | `torch.load(...)['model']` |
+| Metadata lookup | Inline string concat | Lookup against `'Scientific Name'` column in CSV |
+
+---
 
 ## License
 
-The model weights are released under the  
-Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
-
-This allows researchers to use, modify, and redistribute the model for
-non-commercial purposes with proper attribution.
-
-Full license text: https://creativecommons.org/licenses/by-nc/4.0/
+Model weights are released under the  
+**Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**.  
+Permitted for non-commercial research with proper attribution.  
+Full text: https://creativecommons.org/licenses/by-nc/4.0/
