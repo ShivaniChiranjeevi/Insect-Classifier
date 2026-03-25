@@ -37,7 +37,7 @@ weights = torch.load(
     PATH_TO_CLASSIFIER + '/model.pth',
     map_location=torch.device('cpu'),
     weights_only=False
-)['model']                          # <-- note the ['model'] key
+)['model']                          
 
 model = torchvision.models.regnet_y_32gf()
 model.fc = torch.nn.Linear(3712, 2526)
