@@ -85,17 +85,6 @@ Other plausible:  {}
 
 ---
 
-## What changed vs. the old evaluate.py
-
-| Issue | Old code | Fixed code |
-|---|---|---|
-| Class index source | `df['genus'] + ' ' + df['species']` from CSV | `classes.txt` (one name per line) — **critical** |
-| OOD detection | Softmax threshold ≥ 0.97 | Energy-based threshold (energy < 11.49) |
-| Weight loading | `torch.load(...)` directly | `torch.load(...)['model']` |
-| Metadata lookup | Inline string concat | Lookup against `'Scientific Name'` column in CSV |
-
----
-
 ## License
 
 Model weights are released under the  
